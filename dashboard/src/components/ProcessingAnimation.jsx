@@ -109,7 +109,7 @@ const ProcessingAnimation = ({ media, isComplete, syncedTime, isSyncedPlaying, s
             className={`w-full h-full ${isSyncedPlaying ? '' : 'pointer-events-none scale-110'}`}
             // Add enablejsapi=1 for postMessage control
             src={`https://www.youtube.com/embed/${videoSrc}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoSrc}&modestbranding=1&showinfo=0&rel=0&enablejsapi=1`}
-            title="Processing Video"
+            title="Procesando video"
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           />
@@ -150,7 +150,7 @@ const ProcessingAnimation = ({ media, isComplete, syncedTime, isSyncedPlaying, s
               {isComplete
                 ? <CheckCircle size={14} className="shrink-0" />
                 : <Scan size={14} className="shrink-0" />}
-              <span className="truncate">{isComplete ? 'Analysis Complete' : 'Scanning Content...'}</span>
+              <span className="truncate">{isComplete ? 'Análisis terminado' : 'Analizando contenido...'}</span>
             </div>
             {/* Carries nothing the left pill doesn't; it is the first thing to
                 go when there is no room. */}
@@ -179,7 +179,7 @@ const ProcessingAnimation = ({ media, isComplete, syncedTime, isSyncedPlaying, s
        {/* Synced Playing Indicator */}
        {isSyncedPlaying && (
            <div className="absolute top-2.5 right-2.5 sm:top-4 sm:right-4 z-30 badge-brass bg-black/70 animate-pulse">
-               <Activity size={12} /> Live Sync
+               <Activity size={12} /> En vivo
            </div>
        )}
 

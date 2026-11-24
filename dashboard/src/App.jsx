@@ -178,7 +178,7 @@ const UserProfileSelector = ({ profiles, selectedUserId, onSelect, onConnect }) 
     <div className="relative z-50">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        aria-label="social profile"
+        aria-label="perfil social"
         /* Phone: avatar + chevron only. A 180px pill next to the menu button,
            the section title and the minutes meter overflowed a 360px header. */
         className="flex items-center justify-between gap-1 bg-paper2 border border-rule2 rounded-input px-2 sm:px-3 py-2 text-sm text-ink2 hover:bg-paper3 transition-colors sm:min-w-[180px]"
@@ -190,7 +190,7 @@ const UserProfileSelector = ({ profiles, selectedUserId, onSelect, onConnect }) 
           {autoId ? (
             <span className="hidden sm:flex"><ProfileNetworkIcons profile={selectedProfile} size={13} /></span>
           ) : (
-            <span className="hidden sm:block font-medium text-ink truncate max-w-[100px]">{selectedProfile?.username || "Select User"}</span>
+            <span className="hidden sm:block font-medium text-ink truncate max-w-[100px]">{selectedProfile?.username || "Elegir usuario"}</span>
           )}
         </span>
         <ChevronDown size={14} className={`text-muted transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -215,7 +215,7 @@ const UserProfileSelector = ({ profiles, selectedUserId, onSelect, onConnect }) 
                   <div className="min-w-0">
                     <div className="text-sm font-medium text-ink2 group-hover:text-ink transition-colors truncate">
                       {isAutoProfileId(profile.username)
-                        ? `Social profile ${profiles.indexOf(profile) + 1}`
+                        ? `Perfil social ${profiles.indexOf(profile) + 1}`
                         : profile.username}
                     </div>
                     <div className="flex gap-2 mt-0.5">
@@ -249,7 +249,7 @@ const UserProfileSelector = ({ profiles, selectedUserId, onSelect, onConnect }) 
               onClick={() => { setIsOpen(false); onConnect(); }}
               className="w-full flex items-center gap-2 px-4 py-3 text-sm text-brass hover:bg-paper3 transition-colors text-left border-t border-rule"
             >
-              <Share2 size={14} /> Connect / manage accounts
+              <Share2 size={14} /> Conectar / administrar cuentas
             </button>
           )}
         </div>
@@ -287,7 +287,7 @@ const pollJob = async (jobId) => {
 
 function App() {
   // Cloud auth/billing session (inert when billing is disabled).
-  const { billingEnabled, isManaged, isSignedIn, me, plan, refreshMe, jobRetentionSeconds, localLlm, loading: authLoading } = useAuth();
+  const { billingEnabled, isManaged, isSignedIn, me, plan, refreshMe, jobRetentionSeconds, localLlm, serverGeminiKey, loading: authLoading } = useAuth();
   const [showLogin, setShowLogin] = useState(false);
   const [showTopUp, setShowTopUp] = useState(false);
   // Free plan: "want the watermark off?" once per job, when the clips land.
@@ -751,13 +751,13 @@ function App() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `openshorts_clips_${(jobId || '').slice(0, 8)}.zip`;
+      a.download = `caelumclip_clips_${(jobId || '').slice(0, 8)}.zip`;
       document.body.appendChild(a);
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
     } catch (e) {
-      alert(`Download failed: ${e.message}`);
+      alert(`La descarga falló: ${e.message}`);
     } finally {
       setDownloadingAll(false);
     }
@@ -1007,10 +1007,10 @@ function App() {
           setUploadUserId(data.profiles[0].username);
         }
       } else if (!silent) {
-        alert("No profiles found for this API Key.");
+        alert("No se encontraron perfiles para esta clave.");
       }
     } catch (e) {
-      if (!silent) alert("Error fetching User Profiles. Please check key.");
+      if (!silent) alert("Error al cargar los perfiles. Revisa la clave.");
       console.error(e);
     }
   };
@@ -1019,8 +1019,9 @@ function App() {
   // `keysMissing` now means "self-host BYOK keys missing" — it never fires on hosted.
   // A self-hosted server running the moment picker on a local LLM
   // (LLM_BASE_URL) does not need a Gemini key for the core pipeline.
-  const geminiOk = !!apiKey || !!localLlm;
-  const keysMissing = !billingEnabled && (!geminiOk || !uploadPostKey);
+  const geminiOk = !!apiKey || !!localLlm || serverGeminiKey;
+  // CaelumClip: only Gemini is needed to make clips; Upload-Post is optional (publishing).
+  const keysMissing = !billingEnabled && !geminiOk;
   const needsPlan = billingEnabled && !isManaged;   // hosted, signed-out or no active plan/trial
 
   // Fresh sign-up: Clip Generator tutorial (AuthContext set os_show_clip_tutorial
@@ -1225,7 +1226,7 @@ function App() {
       if (access_url) window.location.href = access_url;
     } catch (e) {
       if (e instanceof QuotaError) { openQuotaWall(e, 'social_connect'); return; }
-      alert('Could not open the connection page. Please try again.');
+      alert('No se pudo abrir la página de conexión. Intenta de nuevo.');
     }
   };
 
@@ -1237,7 +1238,7 @@ function App() {
       if (access_url) window.open(access_url, '_blank', 'noopener');
     } catch (e) {
       if (e instanceof QuotaError) { openQuotaWall(e, 'calendar'); return; }
-      alert('Could not open the calendar. Please try again.');
+      alert('No se pudo abrir el calendario. Intenta de nuevo.');
     }
   };
 
@@ -1448,15 +1449,15 @@ function App() {
   // drawer, and the bottom tab bar. `short` is the tab-bar label — the full one
   // wraps to two lines in a 5-up bar on a 360px phone.
   const navItems = [
-    { id: 'dashboard', ord: '01', icon: LayoutDashboard, label: 'Clip Generator', short: 'clips', primary: true },
+    { id: 'dashboard', ord: '01', icon: LayoutDashboard, label: 'Generador de clips', short: 'clips', primary: true },
     // Cloud only: it runs on the managed pipeline and the Upload-Post connection.
-    ...(billingEnabled ? [{ id: 'autopilot', ord: '02', icon: Rocket, label: 'Autopilot', short: 'autopilot', isNew: true }] : []),
-    { id: 'saasshorts', ord: '03', icon: Sparkles, label: 'AI Shorts', short: 'ai shorts', byok: true, primary: true },
-    { id: 'ai-agent', ord: '04', icon: Bot, label: 'AI Agent', short: 'agent', byok: true },
-    { id: 'ugc-gallery', ord: '05', icon: LayoutGrid, label: 'UGC Gallery', short: 'gallery', primary: true },
-    { id: 'thumbnails', ord: '06', icon: Image, label: 'YouTube Studio', short: 'studio', primary: true },
-    ...(billingEnabled && isSignedIn ? [{ id: 'history', ord: '07', icon: History, label: 'History', short: 'history' }] : []),
-    { id: 'settings', ord: '08', icon: Settings, label: 'Settings', short: 'settings' },
+    ...(billingEnabled ? [{ id: 'autopilot', ord: '02', icon: Rocket, label: 'Piloto automático', short: 'autopilot', isNew: true }] : []),
+    { id: 'saasshorts', ord: '03', icon: Sparkles, label: 'Shorts con IA', short: 'shorts con ia', byok: true, primary: true },
+    { id: 'ai-agent', ord: '04', icon: Bot, label: 'Agente de IA', short: 'agent', byok: true },
+    { id: 'ugc-gallery', ord: '05', icon: LayoutGrid, label: 'Galería UGC', short: 'gallery', primary: true },
+    { id: 'thumbnails', ord: '06', icon: Image, label: 'Estudio de YouTube', short: 'studio', primary: true },
+    ...(billingEnabled && isSignedIn ? [{ id: 'history', ord: '07', icon: History, label: 'Historial', short: 'history' }] : []),
+    { id: 'settings', ord: '08', icon: Settings, label: 'Ajustes', short: 'settings' },
   ];
   const activeNav = navItems.find((n) => n.id === activeTab);
 
@@ -1485,7 +1486,7 @@ function App() {
         className="flex items-center gap-2 px-3 py-2 text-xs lowercase text-muted hover:text-ink2 transition-colors"
       >
         <Globe size={14} className="shrink-0" />
-        <span className={collapsed ? 'hidden lg:block truncate' : 'truncate'}>landing page</span>
+        <span className={collapsed ? 'hidden lg:block truncate' : 'truncate'}>página de inicio</span>
       </a>
       <a
         href="https://github.com/mutonby/openshorts"
@@ -1494,7 +1495,7 @@ function App() {
         className="flex items-center gap-2 px-3 py-2 text-xs lowercase text-muted hover:text-ink2 transition-colors"
       >
         <svg height="14" viewBox="0 0 16 16" version="1.1" width="14" aria-hidden="true" fill="currentColor" className="shrink-0"><path fillRule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
-        <span className={collapsed ? 'hidden lg:block truncate' : 'truncate'}>open source</span>
+        <span className={collapsed ? 'hidden lg:block truncate' : 'truncate'}>código abierto</span>
       </a>
       {billingEnabled && (
         <a
@@ -1502,7 +1503,7 @@ function App() {
           className="flex items-center gap-2 px-3 py-2 text-xs lowercase text-muted hover:text-ink2 transition-colors"
         >
           <Sparkles size={14} className="shrink-0" />
-          <span className={collapsed ? 'hidden lg:block truncate' : 'truncate'}>plans &amp; pricing</span>
+          <span className={collapsed ? 'hidden lg:block truncate' : 'truncate'}>planes y precios</span>
         </a>
       )}
       <a
@@ -1519,11 +1520,11 @@ function App() {
   // entirely — an unlabelled 80px rail ate a fifth of a phone screen.
   const Sidebar = () => (
     <div className="hidden md:flex w-20 lg:w-64 bg-paper2 border-r border-rule flex-col h-full shrink-0 transition-all duration-300">
-      <a href="#app" onClick={() => goToTab('dashboard')} className="p-6 flex items-center gap-3" title="openshorts home">
+      <a href="#app" onClick={() => goToTab('dashboard')} className="p-6 flex items-center gap-3" title="inicio de caelumclip">
         <div className="w-8 h-8 bg-paper3 rounded-input flex items-center justify-center shrink-0 overflow-hidden border border-rule">
-          <img src="/logo-openshorts.png" alt="Logo" className="w-full h-full object-cover" />
+          <img src="/logo-caelumclip.png" alt="CaelumClip" className="w-full h-full object-cover" />
         </div>
-        <span className="font-display lowercase text-lg text-ink hidden lg:block">openshorts</span>
+        <span className="font-display lowercase text-lg text-ink hidden lg:block">caelumclip</span>
       </a>
 
       <nav className="flex-1 px-4 py-4 space-y-1">
@@ -1535,7 +1536,7 @@ function App() {
               key={item.id}
               data-tutorial={item.id === 'dashboard' ? 'nav-clips' : undefined}
               onClick={() => goToTab(item.id)}
-              title={tabLocked(item.id) ? 'Finish your first clips to unlock' : item.label}
+              title={tabLocked(item.id) ? 'Termina tus primeros clips para desbloquear' : item.label}
               disabled={tabLocked(item.id)}
               className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-input transition-colors ${isActive ? 'bg-paper3 text-ink' : 'text-muted hover:text-ink2 hover:bg-paper3/50'} ${tabLocked(item.id) ? 'opacity-40 cursor-not-allowed hover:bg-transparent hover:text-muted' : ''}`}
             >
@@ -1547,7 +1548,7 @@ function App() {
               {tabLocked(item.id)
                 ? <Lock size={12} className="shrink-0 hidden lg:block" />
                 : item.byok ? <span className="readout hidden lg:block">BYOK</span>
-                  : item.isNew ? <span className="badge-brass hidden lg:block">new</span> : null}
+                  : item.isNew ? <span className="badge-brass hidden lg:block">nuevo</span> : null}
               <span className="readout hidden lg:block">{item.ord}</span>
             </button>
           );
@@ -1566,7 +1567,7 @@ function App() {
       className="md:hidden fixed inset-0 z-[90] flex"
       role="dialog"
       aria-modal="true"
-      aria-label="Navigation"
+      aria-label="Navegación"
     >
       <div
         className="absolute inset-0 bg-black/60 animate-fade"
@@ -1577,13 +1578,13 @@ function App() {
         <div className="flex items-center justify-between px-5 h-14 border-b border-rule shrink-0">
           <a href="#app" className="flex items-center gap-2.5" onClick={() => goToTab('dashboard')}>
             <div className="w-7 h-7 bg-paper3 rounded-input overflow-hidden border border-rule shrink-0">
-              <img src="/logo-openshorts.png" alt="" className="w-full h-full object-cover" />
+              <img src="/logo-caelumclip.png" alt="" className="w-full h-full object-cover" />
             </div>
-            <span className="font-display lowercase text-lg text-ink">openshorts</span>
+            <span className="font-display lowercase text-lg text-ink">caelumclip</span>
           </a>
           <button
             onClick={() => setNavOpen(false)}
-            aria-label="close navigation"
+            aria-label="cerrar menú"
             className="p-2 -mr-2 text-muted hover:text-ink transition-colors"
           >
             <X size={18} />
@@ -1600,7 +1601,7 @@ function App() {
                 onClick={() => goToTab(item.id)}
                 disabled={tabLocked(item.id)}
                 aria-current={isActive ? 'page' : undefined}
-                title={tabLocked(item.id) ? 'Finish your first clips to unlock' : undefined}
+                title={tabLocked(item.id) ? 'Termina tus primeros clips para desbloquear' : undefined}
                 className={`relative w-full flex items-center gap-3 px-3 py-3 rounded-input transition-colors ${isActive ? 'bg-paper3 text-ink' : 'text-muted active:bg-paper3/60'} ${tabLocked(item.id) ? 'opacity-40 cursor-not-allowed' : ''}`}
               >
                 {isActive && (
@@ -1611,7 +1612,7 @@ function App() {
                 {tabLocked(item.id)
                   ? <Lock size={12} className="shrink-0" />
                   : item.byok ? <span className="readout shrink-0">BYOK</span>
-                    : item.isNew ? <span className="badge-brass shrink-0">new</span> : null}
+                    : item.isNew ? <span className="badge-brass shrink-0">nuevo</span> : null}
               </button>
             );
           })}
@@ -1643,7 +1644,7 @@ function App() {
                 onClick={() => goToTab(item.id)}
                 disabled={tabLocked(item.id)}
                 aria-current={isActive ? 'page' : undefined}
-                title={tabLocked(item.id) ? 'Finish your first clips to unlock' : undefined}
+                title={tabLocked(item.id) ? 'Termina tus primeros clips para desbloquear' : undefined}
                 className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-1 py-2 min-h-[56px] transition-colors ${isActive ? 'text-ink' : 'text-muted active:text-ink2'} ${tabLocked(item.id) ? 'opacity-40 cursor-not-allowed' : ''}`}
               >
                 <NavIcon size={19} className={isActive ? 'text-brass' : ''} />
@@ -1653,12 +1654,12 @@ function App() {
           })}
           <button
             onClick={() => setNavOpen(true)}
-            aria-label="more sections"
+            aria-label="más secciones"
             aria-expanded={navOpen}
             className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-1 py-2 min-h-[56px] transition-colors ${moreActive ? 'text-ink' : 'text-muted active:text-ink2'}`}
           >
             <Menu size={19} className={moreActive ? 'text-brass' : ''} />
-            <span className="text-[10.5px] lowercase leading-none">more</span>
+            <span className="text-[10.5px] lowercase leading-none">más</span>
           </button>
         </div>
       </nav>
@@ -1681,22 +1682,22 @@ function App() {
                 used to carry. Without it a phone has no "where am I". */}
             <button
               onClick={() => setNavOpen(true)}
-              aria-label="open navigation"
+              aria-label="abrir menú"
               className="md:hidden -ml-1 p-2 rounded-input text-muted active:bg-paper3 transition-colors shrink-0"
             >
               <Menu size={20} />
             </button>
             <span data-tutorial="nav-clips" className="md:hidden font-display lowercase text-base text-ink truncate">
-              {activeNav?.label || 'openshorts'}
+              {activeNav?.label || 'caelumclip'}
             </span>
             {status !== 'idle' && (
               <button
                 onClick={handleReset}
                 className="btn-quiet px-3 py-1.5 text-xs shrink-0"
-                aria-label="New Project"
+                aria-label="Nuevo proyecto"
               >
                 <Plus size={14} />
-                <span className="hidden sm:inline">New Project</span>
+                <span className="hidden sm:inline">Nuevo proyecto</span>
               </button>
             )}
           </div>
@@ -1723,13 +1724,13 @@ function App() {
             {billingEnabled && isSignedIn && !isManaged && (
               <button onClick={() => setShowPlanChoice(true)}
                 className="btn-primary px-4 py-2 text-xs">
-                Choose a plan
+                Elegir un plan
               </button>
             )}
             {billingEnabled && !isSignedIn && (
               <button onClick={() => setShowLogin(true)}
                 className="btn-ghost px-4 py-2 text-xs">
-                Sign in
+                Iniciar sesión
               </button>
             )}
             {billingEnabled && isSignedIn && <ProfileMenu onUpgrade={isManaged ? openUpsell : null} />}
@@ -1740,17 +1741,15 @@ function App() {
               <button
                 onClick={() => (billingEnabled && !isSignedIn ? setShowLogin(true) : goToTab('settings'))}
                 className="badge-warn hover:brightness-125 transition-all hidden sm:inline-flex"
-                title="Configure API keys or choose a plan"
+                title="Configura tus claves o elige un plan"
               >
                 <AlertTriangle size={12} />
                 <span className="hidden md:inline">
-                  {!geminiOk && !uploadPostKey
-                    ? 'Gemini & Upload-Post keys missing'
-                    : !geminiOk
-                      ? 'Gemini API Key Missing'
-                      : 'Upload-Post API Key Missing'}
+                  {!geminiOk
+                      ? 'Falta la clave de Gemini'
+                      : 'Falta la clave de Upload-Post'}
                 </span>
-                <span className="md:hidden">keys missing</span>
+                <span className="md:hidden">faltan claves</span>
               </button>
             )}
           </div>
@@ -1762,13 +1761,11 @@ function App() {
             <div className="flex items-start sm:items-center gap-2.5 sm:gap-3 text-sm text-ink2 min-w-0 flex-1">
               <KeyRound size={16} className="shrink-0 text-warn mt-0.5 sm:mt-0" />
               <div className="min-w-0">
-                <span className="font-medium text-ink">Required API keys missing.</span>{' '}
+                <span className="font-medium text-ink">Faltan claves necesarias.</span>{' '}
                 <span className="text-muted">
-                  {!geminiOk && !uploadPostKey
-                    ? 'Set your Gemini and Upload-Post API keys to use OpenShorts.'
-                    : !geminiOk
-                      ? 'Set your Gemini API key to use OpenShorts.'
-                      : 'Set your Upload-Post API key to use OpenShorts.'}
+                  {!geminiOk
+                      ? 'Pon tu clave de Gemini para usar CaelumClip.'
+                      : 'Pon tu clave de Upload-Post para usar CaelumClip.'}
                 </span>
               </div>
             </div>
@@ -1776,7 +1773,7 @@ function App() {
               onClick={() => goToTab('settings')}
               className="btn-quiet px-3 py-1.5 text-xs shrink-0 w-full sm:w-auto"
             >
-              Go to Settings
+              Ir a Ajustes
             </button>
           </div>
         )}
@@ -1786,8 +1783,8 @@ function App() {
           <div className="mx-3 sm:mx-6 mt-2 px-3.5 sm:px-4 py-3 bg-paper2 border border-rule rounded-card flex items-start justify-between gap-3 animate-fade shrink-0">
             <div className="flex items-start sm:items-center gap-2 text-sm text-ink2 flex-wrap min-w-0">
               <RotateCcw size={16} className="text-brass shrink-0 mt-0.5 sm:mt-0" />
-              <span className="font-medium">Session recovered</span>
-              <span className="text-muted text-xs">Your previous work has been restored.</span>
+              <span className="font-medium">Sesión recuperada</span>
+              <span className="text-muted text-xs">Se recuperó tu trabajo anterior.</span>
             </div>
             <button
               onClick={() => setSessionRecovered(false)}
@@ -1804,11 +1801,11 @@ function App() {
           <div role="status" className="mx-3 sm:mx-6 mt-2 px-3.5 sm:px-4 py-3 bg-paper2 border border-rule rounded-card flex items-start justify-between gap-3 animate-fade shrink-0">
             <div className="flex items-start sm:items-center gap-2 text-sm text-ink2 flex-wrap min-w-0">
               <History size={16} className="text-brass shrink-0 mt-0.5 sm:mt-0" />
-              <span className="font-medium">That project is no longer open</span>
+              <span className="font-medium">Ese proyecto ya no está abierto</span>
               <span className="text-muted text-xs">
                 {billingEnabled && isSignedIn
-                  ? 'If it finished, its clips are saved in History.'
-                  : 'The server has already cleared it. Start a new project to keep going.'}
+                  ? 'Si terminó, sus clips están guardados en el Historial.'
+                  : 'El servidor ya lo borró. Empieza un proyecto nuevo para seguir.'}
               </span>
             </div>
             <button
@@ -1835,11 +1832,11 @@ function App() {
             <div className="h-full overflow-y-auto p-4 sm:p-8 max-w-2xl mx-auto animate-fade">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
                 <div>
-                  <p className="eyebrow mb-1.5">08 · SETTINGS</p>
-                  <h1 className="font-display lowercase text-2xl text-ink">Settings</h1>
+                  <p className="eyebrow mb-1.5">08 · AJUSTES</p>
+                  <h1 className="font-display lowercase text-2xl text-ink">Ajustes</h1>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted mt-1">
-                  <Shield size={12} className="text-ok shrink-0" /> Privacy: keys only live in your browser (sent to backend just to process)
+                  <Shield size={12} className="text-ok shrink-0" /> Privacidad: las claves solo viven en tu navegador (se mandan al servidor solo para procesar)
                 </div>
               </div>
               {/* Self-hosted installs have no account page, so the agent
@@ -1852,21 +1849,21 @@ function App() {
                       <div className="w-9 h-9 rounded-input bg-paper3 flex items-center justify-center shrink-0">
                         <Shield size={16} className="text-brass" />
                       </div>
-                      <h2 className="text-base font-medium text-ink lowercase">Included in your plan</h2>
+                      <h2 className="text-base font-medium text-ink lowercase">Incluido en tu plan</h2>
                     </div>
-                    <span className="badge-ok">Managed</span>
+                    <span className="badge-ok">Administrado</span>
                   </div>
                   <p className="text-xs text-muted mb-5 leading-relaxed">
-                    Your plan includes the <strong>Clip Generator</strong> and <strong>YouTube Studio</strong>,
+                    Tu plan incluye <strong>Generador de clips</strong> y <strong>Estudio de YouTube</strong>,
                     fully managed — no API keys required. AI Shorts &amp; dubbing use your own fal.ai / ElevenLabs
                     keys (below). Connect your social accounts to publish directly.
                   </p>
                   <div className="flex flex-wrap gap-2">
                     <button onClick={handleConnectSocials} className="btn-primary py-2 px-4 text-sm">
-                      <Share2 size={16} /> Connect social accounts
+                      <Share2 size={16} /> Conectar redes sociales
                     </button>
                     <button onClick={handleOpenCalendar} className="btn-quiet py-2 px-4 text-sm">
-                      <Calendar size={16} /> Content calendar
+                      <Calendar size={16} /> Calendario de contenido
                     </button>
                   </div>
                 </div>
@@ -1877,15 +1874,15 @@ function App() {
                       <div className="w-9 h-9 rounded-input bg-paper3 flex items-center justify-center shrink-0">
                         <Sparkles size={16} className="text-brass" />
                       </div>
-                      <h2 className="text-base font-medium text-ink lowercase">Choose your plan</h2>
+                      <h2 className="text-base font-medium text-ink lowercase">Elige tu plan</h2>
                     </div>
-                    <span className="badge-ok">Free plan available</span>
+                    <span className="badge-ok">Hay plan gratis</span>
                   </div>
                   <p className="text-xs text-muted mb-5 leading-relaxed">
                     Generate shorts with zero setup — no API keys needed. Start free with 20 min/month, or go paid from $12/mo. Cancel anytime.
                   </p>
                   <button onClick={() => setShowPlanChoice(true)} className="btn-primary py-2 px-4 text-sm">
-                    <Sparkles size={16} /> Choose a plan
+                    <Sparkles size={16} /> Elegir un plan
                   </button>
                 </div>
               ) : (
@@ -1898,16 +1895,15 @@ function App() {
                     <div className="w-9 h-9 rounded-input bg-paper3 flex items-center justify-center shrink-0">
                       <Share2 size={16} className="text-brass" />
                     </div>
-                    <h2 className="text-base font-medium text-ink lowercase">Social Integration</h2>
+                    <h2 className="text-base font-medium text-ink lowercase">Redes sociales</h2>
                   </div>
-                  <span className="badge-warn">Required</span>
+                  <span className="badge-ok">Opcional</span>
                 </div>
                 <p className="text-xs text-muted mb-6 leading-relaxed">
-                  Required to publish your clips to TikTok, Instagram Reels, and YouTube Shorts via <strong>Upload-Post</strong>.
-                  Includes a <strong>free tier</strong> (no credit card required).
+                  Solo si quieres publicar tus clips en TikTok, Instagram Reels y YouTube Shorts mediante <strong>Upload-Post</strong>. Incluye un <strong>plan gratis</strong> (sin tarjeta de crédito).
                 </p>
                 <div className="space-y-4">
-                  <label className="block text-sm text-muted">Upload-Post API Key</label>
+                  <label className="block text-sm text-muted">Clave de Upload-Post</label>
                   <div className="flex flex-col sm:flex-row gap-2">
                     <input
                       type="password"
@@ -1917,28 +1913,28 @@ function App() {
                       placeholder="ey..."
                     />
                     <button onClick={fetchUserProfiles} className="btn-quiet py-2 px-4 text-sm">
-                      Connect
+                      Conectar
                     </button>
                   </div>
                   <div className="text-xs text-muted leading-relaxed">
-                    Connect your Upload-Post account to enable one-click publishing.
+                    Conecta tu cuenta de Upload-Post para publicar con un clic.
                     <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
                       <a href="https://app.upload-post.com/login" target="_blank" rel="noopener noreferrer" className="p-2 border border-rule rounded-input hover:bg-paper3 transition-colors flex flex-col gap-1">
-                        <span className="text-ink2 font-medium">1. Login</span>
-                        <span className="text-xs text-muted">Register account</span>
+                        <span className="text-ink2 font-medium">1. Entrar</span>
+                        <span className="text-xs text-muted">Crear cuenta</span>
                       </a>
                       <a href="https://app.upload-post.com/manage-users" target="_blank" rel="noopener noreferrer" className="p-2 border border-rule rounded-input hover:bg-paper3 transition-colors flex flex-col gap-1">
-                        <span className="text-ink2 font-medium">2. Profiles</span>
-                        <span className="text-xs text-muted">Create & Connect</span>
+                        <span className="text-ink2 font-medium">2. Perfiles</span>
+                        <span className="text-xs text-muted">Crear y conectar</span>
                       </a>
                       <a href="https://app.upload-post.com/api-keys" target="_blank" rel="noopener noreferrer" className="p-2 border border-rule rounded-input hover:bg-paper3 transition-colors flex flex-col gap-1">
-                        <span className="text-ink2 font-medium">3. API Key</span>
-                        <span className="text-xs text-muted">Generate key</span>
+                        <span className="text-ink2 font-medium">3. Clave</span>
+                        <span className="text-xs text-muted">Generar clave</span>
                       </a>
                     </div>
                     <br />
                     <span className="text-muted">
-                      Keys are only stored in your browser. They are sent to the backend only to process your request, never stored server-side.
+                      Las claves solo se guardan en tu navegador. Se mandan al servidor solo para procesar tu pedido y nunca se guardan ahí.
                     </span>
                   </div>
                 </div>
@@ -1953,16 +1949,15 @@ function App() {
                     <div className="w-9 h-9 rounded-input bg-paper3 flex items-center justify-center shrink-0">
                       <Globe size={16} className="text-brass" />
                     </div>
-                    <h2 className="text-base font-medium text-ink lowercase">Video Translation</h2>
+                    <h2 className="text-base font-medium text-ink lowercase">Traducción de video</h2>
                   </div>
                   <span className="readout">BYOK</span>
                 </div>
                 <p className="text-xs text-muted mb-6 leading-relaxed">
-                  For <strong>AI Shorts &amp; dubbing</strong> — bring your own key. Translate your clips to different
-                  languages using <strong>ElevenLabs</strong> AI dubbing (billed by ElevenLabs). Not covered by your plan.
+                  Para <strong>Shorts con IA y doblaje</strong> — usa tu propia clave. Traduce tus clips a otros idiomas con <strong>ElevenLabs</strong> doblaje con IA (lo cobra ElevenLabs).
                 </p>
                 <div className="space-y-4">
-                  <label className="block text-sm text-muted">ElevenLabs API Key</label>
+                  <label className="block text-sm text-muted">Clave de ElevenLabs</label>
                   <div className="flex flex-col sm:flex-row gap-2">
                     <input
                       type="password"
@@ -1981,24 +1976,24 @@ function App() {
                       }}
                       className={elevenLabsSaved ? 'badge-ok px-4' : 'btn-quiet py-2 px-4 text-sm'}
                     >
-                      {elevenLabsSaved ? <><Check size={12} /> saved</> : 'Save'}
+                      {elevenLabsSaved ? <><Check size={12} /> guardada</> : 'Guardar'}
                     </button>
                   </div>
                   <div className="text-xs text-muted leading-relaxed">
-                    Get your API key from ElevenLabs to enable video translation.
+                    Saca tu clave de ElevenLabs para activar la traducción de video.
                     <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <a href="https://elevenlabs.io/sign-up" target="_blank" rel="noopener noreferrer" className="p-2 border border-rule rounded-input hover:bg-paper3 transition-colors flex flex-col gap-1">
-                        <span className="text-ink2 font-medium">1. Sign Up</span>
-                        <span className="text-xs text-muted">Create account</span>
+                        <span className="text-ink2 font-medium">1. Registrarte</span>
+                        <span className="text-xs text-muted">Crear cuenta</span>
                       </a>
                       <a href="https://elevenlabs.io/app/settings/api-keys" target="_blank" rel="noopener noreferrer" className="p-2 border border-rule rounded-input hover:bg-paper3 transition-colors flex flex-col gap-1">
-                        <span className="text-ink2 font-medium">2. API Key</span>
-                        <span className="text-xs text-muted">Generate key</span>
+                        <span className="text-ink2 font-medium">2. Clave</span>
+                        <span className="text-xs text-muted">Generar clave</span>
                       </a>
                     </div>
                     <br />
                     <span className="text-muted">
-                      Keys are only stored in your browser. They are sent to the backend only to process your request, never stored server-side.
+                      Las claves solo se guardan en tu navegador. Se mandan al servidor solo para procesar tu pedido y nunca se guardan ahí.
                     </span>
                   </div>
                 </div>
@@ -2010,17 +2005,16 @@ function App() {
                     <div className="w-9 h-9 rounded-input bg-paper3 flex items-center justify-center shrink-0">
                       <Sparkles size={16} className="text-brass" />
                     </div>
-                    <h2 className="text-base font-medium text-ink lowercase">AI Shorts (UGC Videos)</h2>
+                    <h2 className="text-base font-medium text-ink lowercase">Shorts con IA (videos UGC)</h2>
                   </div>
                   <span className="readout">BYOK</span>
                 </div>
                 <p className="text-xs text-muted mb-6 leading-relaxed">
-                  Generate UGC-style videos with AI actors for any product or business using <strong>fal.ai</strong>.
-                  <strong> Not covered by your plan</strong> — bring your own fal.ai + ElevenLabs keys (billed by those
-                  providers, ~$0.65-2 per video). Your plan still covers the AI script &amp; orchestration.
+                  Genera videos estilo UGC con actores de IA para cualquier producto o negocio usando <strong>fal.ai</strong>.
+                  <strong> De pago aparte</strong> — usa tus propias claves de fal.ai y ElevenLabs (lo cobran ellos, unos $0.65-2 dólares por video).
                 </p>
                 <div className="space-y-4">
-                  <label className="block text-sm text-muted">fal.ai API Key</label>
+                  <label className="block text-sm text-muted">Clave de fal.ai</label>
                   <div className="flex flex-col sm:flex-row gap-2">
                     <input
                       type="password"
@@ -2039,24 +2033,24 @@ function App() {
                       }}
                       className={falSaved ? 'badge-ok px-4' : 'btn-quiet py-2 px-4 text-sm'}
                     >
-                      {falSaved ? <><Check size={12} /> saved</> : 'Save'}
+                      {falSaved ? <><Check size={12} /> guardada</> : 'Guardar'}
                     </button>
                   </div>
                   <div className="text-xs text-muted leading-relaxed">
-                    Get your API key from fal.ai to enable AI actor video generation.
+                    Saca tu clave de fal.ai para generar videos con actores de IA.
                     <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <a href="https://fal.ai/dashboard/keys" target="_blank" rel="noopener noreferrer" className="p-2 border border-rule rounded-input hover:bg-paper3 transition-colors flex flex-col gap-1">
-                        <span className="text-ink2 font-medium">1. Sign Up</span>
-                        <span className="text-xs text-muted">Create fal.ai account</span>
+                        <span className="text-ink2 font-medium">1. Registrarte</span>
+                        <span className="text-xs text-muted">Crear cuenta en fal.ai</span>
                       </a>
                       <a href="https://fal.ai/dashboard/keys" target="_blank" rel="noopener noreferrer" className="p-2 border border-rule rounded-input hover:bg-paper3 transition-colors flex flex-col gap-1">
-                        <span className="text-ink2 font-medium">2. API Key</span>
-                        <span className="text-xs text-muted">Generate key</span>
+                        <span className="text-ink2 font-medium">2. Clave</span>
+                        <span className="text-xs text-muted">Generar clave</span>
                       </a>
                     </div>
                     <br />
                     <span className="text-muted">
-                      Keys are only stored in your browser. Sent to backend only to process requests.
+                      Las claves solo se guardan en tu navegador. Se mandan al servidor solo para procesar.
                     </span>
                   </div>
                 </div>
@@ -2077,10 +2071,10 @@ function App() {
                 {/* Header */}
                 <div className="space-y-3">
                   <p className="eyebrow flex items-center gap-2">
-                    <Bot size={12} /> 03 · AI AGENT · AUTONOMOUS SKILL
+                    <Bot size={12} /> 03 · AGENTE DE IA · AUTOMÁTICO
                   </p>
                   <h1 className="font-display lowercase text-3xl md:text-4xl text-ink">
-                    Your Personal Clipping Team
+                    Tu equipo personal de edición
                   </h1>
                   <p className="text-muted text-base md:text-lg leading-relaxed max-w-2xl">
                     Drop your videos in a folder and a team of AI clippers picks the viral moments, edits them, and queues them for your approval — like having a 24/7 short-form editing crew on autopilot.
@@ -2091,7 +2085,7 @@ function App() {
                 <div className="px-4 py-3 rounded-card border border-rule bg-paper2 flex items-start gap-3">
                   <Smartphone size={18} className="text-warn shrink-0 mt-0.5" />
                   <div className="text-sm text-ink2">
-                    <p className="font-medium text-ink mb-1">Upload videos already in vertical (9:16) mobile format.</p>
+                    <p className="font-medium text-ink mb-1">Sube videos que ya estén en formato vertical (9:16).</p>
                     <p className="text-muted leading-relaxed">
                       The agent does not reframe horizontal footage. Make sure every source video is shot or pre-cropped to mobile/portrait format before dropping it into the input folder.
                     </p>
@@ -2104,7 +2098,7 @@ function App() {
                     <div className="w-10 h-10 rounded-input bg-paper3 flex items-center justify-center">
                       <Upload size={18} className="text-brass" />
                     </div>
-                    <h3 className="font-medium text-ink lowercase">1. Drop your videos</h3>
+                    <h3 className="font-medium text-ink lowercase">1. Deja tus videos</h3>
                     <p className="text-xs text-muted leading-relaxed">
                       Put your long-form vertical footage in the watched folder. The skill picks one video per run.
                     </p>
@@ -2114,7 +2108,7 @@ function App() {
                     <div className="w-10 h-10 rounded-input bg-paper3 flex items-center justify-center">
                       <Users size={18} className="text-brass" />
                     </div>
-                    <h3 className="font-medium text-ink lowercase">2. AI clippers work</h3>
+                    <h3 className="font-medium text-ink lowercase">2. La IA trabaja</h3>
                     <p className="text-xs text-muted leading-relaxed">
                       Whisper transcribes, Gemini 3 Flash spots viral beats, FFmpeg cuts each clip and adds a hook overlay.
                     </p>
@@ -2124,7 +2118,7 @@ function App() {
                     <div className="w-10 h-10 rounded-input bg-paper3 flex items-center justify-center">
                       <CheckCircle2 size={18} className="text-brass" />
                     </div>
-                    <h3 className="font-medium text-ink lowercase">3. You validate, it ships</h3>
+                    <h3 className="font-medium text-ink lowercase">3. Tú apruebas y se publica</h3>
                     <p className="text-xs text-muted leading-relaxed">
                       Approve the candidates you like and the skill auto-publishes them to TikTok, Reels and YouTube Shorts via Upload-Post.
                     </p>
@@ -2146,7 +2140,7 @@ function App() {
                       rel="noopener noreferrer"
                       className="btn-primary py-2 px-4 text-sm shrink-0"
                     >
-                      View on GitHub <ExternalLink size={14} />
+                      Ver en GitHub <ExternalLink size={14} />
                     </a>
                   </div>
 
@@ -2155,7 +2149,7 @@ function App() {
                     <button
                       onClick={() => navigator.clipboard.writeText('git clone https://github.com/mutonby/skill-autoshorts')}
                       className="text-muted hover:text-ink transition-colors shrink-0"
-                      title="Copy"
+                      title="Copiar"
                     >
                       <Copy size={14} />
                     </button>
@@ -2164,19 +2158,19 @@ function App() {
                   <div className="grid sm:grid-cols-2 gap-3 text-sm">
                     <div className="flex items-start gap-2 text-ink2">
                       <Check size={16} className="text-brass shrink-0 mt-0.5" />
-                      <span>Daily batch — picks one long video per run</span>
+                      <span>Lote diario: toma un video largo por vuelta</span>
                     </div>
                     <div className="flex items-start gap-2 text-ink2">
                       <Check size={16} className="text-brass shrink-0 mt-0.5" />
-                      <span>Whisper transcription with word-level timing</span>
+                      <span>Transcripción con Whisper palabra por palabra</span>
                     </div>
                     <div className="flex items-start gap-2 text-ink2">
                       <Check size={16} className="text-brass shrink-0 mt-0.5" />
-                      <span>Gemini 3 Flash multimodal moment detection</span>
+                      <span>Detección de momentos con Gemini</span>
                     </div>
                     <div className="flex items-start gap-2 text-ink2">
                       <Check size={16} className="text-brass shrink-0 mt-0.5" />
-                      <span>Auto-publish to TikTok, Reels & YouTube Shorts</span>
+                      <span>Publica solo en TikTok, Reels y YouTube Shorts</span>
                     </div>
                   </div>
                 </div>
@@ -2207,12 +2201,11 @@ function App() {
                 ) : (
                   <div className="max-w-2xl mx-auto card p-8 text-center">
                     <Rocket size={28} className="mx-auto mb-4 text-brass" />
-                    <h1 className="font-display lowercase text-2xl text-ink mb-2">your channel, clipped on its own</h1>
+                    <h1 className="font-display lowercase text-2xl text-ink mb-2">tu canal, recortado solo</h1>
                     <p className="text-muted text-sm mb-6">
-                      Connect your YouTube channel and every new video turns into shorts automatically.
-                      Sign in to set it up.
+                      Conecta tu canal de YouTube y cada video nuevo se vuelve shorts automáticamente.
                     </p>
-                    <button onClick={() => setShowLogin(true)} className="btn-primary">sign in</button>
+                    <button onClick={() => setShowLogin(true)} className="btn-primary">iniciar sesión</button>
                   </div>
                 )}
               </div>
@@ -2230,7 +2223,7 @@ function App() {
                     <p className="text-muted text-sm mb-6">
                       Sign in with the email address you used to create them and they open right here.
                     </p>
-                    <button onClick={() => setShowLogin(true)} className="btn-primary">sign in</button>
+                    <button onClick={() => setShowLogin(true)} className="btn-primary">iniciar sesión</button>
                   </div>
                 ) : (
                   <HistoryTab onReopenProject={restoreProject} />
@@ -2268,24 +2261,24 @@ function App() {
                   eyebrow, the display size and the gaps all shrink first. */}
               <div className="max-w-xl w-full text-center space-y-5 sm:space-y-8">
                 <div className="space-y-2.5 sm:space-y-4">
-                  <p className="eyebrow hidden sm:block">01 · CLIP GENERATOR</p>
+                  <p className="eyebrow hidden sm:block">01 · GENERADOR DE CLIPS</p>
                   <h1 className="font-display lowercase text-3xl sm:text-4xl md:text-5xl text-ink">
-                    Create Viral Shorts
+                    Crea shorts virales
                   </h1>
                   <p className="text-muted text-[15px] sm:text-lg leading-snug sm:leading-normal max-w-sm sm:max-w-none mx-auto">
-                    Drop your long-form video below to instantly generate viral clips with AI.
+                    Sube tu video largo aquí abajo y la IA saca los mejores clips.
                   </p>
                   {/* The same pipeline is an MCP server: point people at the
                       one place that explains how to drive it from an agent. */}
                   {!tutorialLock && (
                   <p className="text-xs text-muted">
-                    Or let an agent do it:{' '}
+                    O deja que lo haga un agente:{' '}
                     <a
                       href={billingEnabled ? '#/account' : '#app'}
                       onClick={(e) => { if (!billingEnabled) { e.preventDefault(); goToTab('settings'); } }}
                       className="text-ink2 underline underline-offset-2 hover:text-brass transition-colors"
                     >
-                      connect Claude, ChatGPT or n8n →
+                      conecta Claude, ChatGPT o n8n →
                     </a>
                   </p>
                   )}
@@ -2312,7 +2305,7 @@ function App() {
                 <div className="mb-4 sm:mb-6 flex items-center justify-between gap-2">
                   <h2 className="text-sm font-medium text-ink lowercase flex items-center gap-2">
                     <Activity className={`text-brass ${status === 'processing' ? 'animate-pulse' : ''}`} size={18} />
-                    Live Analysis
+                    Análisis en vivo
                   </h2>
                   <span className={status === 'processing' ? 'badge-brass' :
                     status === 'complete' ? 'badge-ok' :
@@ -2340,8 +2333,8 @@ function App() {
                   <div className="mb-4 rounded-card border border-brass/40 bg-brass/5 px-4 py-3 text-sm">
                     <p className="text-ink">
                       {queueInfo.ahead === 0
-                        ? 'You are next in line. Starting in a moment…'
-                        : <>You are <b>#{queueInfo.position}</b> in line · {queueInfo.eta_is_minimum ? 'at least' : 'about'} <b>{Math.max(1, Math.round(queueInfo.eta_seconds / 60))} min</b></>}
+                        ? 'Eres el siguiente. Empieza en un momento…'
+                        : <>Estás <b>#{queueInfo.position}</b> en la fila · {queueInfo.eta_is_minimum ? 'al menos' : 'about'} <b>{Math.max(1, Math.round(queueInfo.eta_seconds / 60))} min</b></>}
                     </p>
                     {queueSlow ? (
                       /* The free queue is saturated and this video is far
@@ -2396,7 +2389,7 @@ function App() {
                   <div className="sm:hidden mb-3 flex items-start gap-2 text-xs text-ink2 min-w-0">
                     <Loader2 size={14} className="animate-spin text-brass shrink-0 mt-px" />
                     <span className="min-w-0 leading-snug break-words">
-                      {logs.length ? logs[logs.length - 1] : 'starting up…'}
+                      {logs.length ? logs[logs.length - 1] : 'arrancando…'}
                     </span>
                   </div>
                 )}
@@ -2405,7 +2398,7 @@ function App() {
                     with nothing to do, so this is where the one star ask goes. */}
                 {status === 'processing' && (
                   <div className="my-3">
-                    <StarBanner message="Got a minute while this renders?" />
+                    <StarBanner message="¿Tienes un minuto mientras se procesa?" />
                   </div>
                 )}
 
@@ -2418,7 +2411,7 @@ function App() {
                     className="w-full px-3.5 sm:px-4 py-2.5 border-b border-rule flex items-center justify-between gap-2 bg-paper2 shrink-0 text-left"
                   >
                     <span className="readout flex items-center gap-2">
-                      <Terminal size={12} /> System Logs
+                      <Terminal size={12} /> Registro del sistema
                     </span>
                     <span className="flex items-center gap-2 text-muted">
                       {!logsVisible && logs.length > 0 && (
@@ -2452,7 +2445,7 @@ function App() {
                     "schedule week" pill under the title on a phone. */}
                 <div className="mb-4 sm:mb-6 shrink-0 space-y-3">
                   <h2 className="font-display lowercase text-lg sm:text-xl text-ink flex flex-wrap items-center gap-2">
-                    <span className="mr-auto">Generated Shorts</span>
+                    <span className="mr-auto">Shorts generados</span>
                     {clipsMaking ? (
                       <span className="readout bg-paper3 px-2.5 py-1 rounded-full text-brass">
                         {progress.ready}/{progress.total} Clips
@@ -2463,7 +2456,7 @@ function App() {
                       </span>
                     )}
                     {results?.cost_analysis && !isManaged && (
-                      <span className="readout bg-paper3 px-2.5 py-1 rounded-full" title={`Input: ${results.cost_analysis.input_tokens} | Output: ${results.cost_analysis.output_tokens}`}>
+                      <span className="readout bg-paper3 px-2.5 py-1 rounded-full" title={`Entrada: ${results.cost_analysis.input_tokens} | Salida: ${results.cost_analysis.output_tokens}`}>
                         GEMINI · ${results.cost_analysis.total_cost.toFixed(5)}
                       </span>
                     )}
@@ -2472,7 +2465,7 @@ function App() {
                     <div
                       className="h-1 rounded-full bg-paper3 overflow-hidden"
                       role="progressbar" aria-valuemin={0} aria-valuemax={progress.total} aria-valuenow={progress.ready}
-                      aria-label="Clips ready"
+                      aria-label="Clips listos"
                     >
                       <div
                         className="h-full bg-brass transition-all duration-500"
@@ -2486,11 +2479,11 @@ function App() {
                         onClick={handleDownloadAll}
                         disabled={downloadingAll}
                         className="btn-ghost px-3 py-2 text-xs"
-                        title="Download all clips as a ZIP"
+                        title="Descargar todos los clips en un ZIP"
                       >
                         {downloadingAll
-                          ? <><Loader2 size={14} className="animate-spin" />zipping…</>
-                          : <><Download size={14} />download all</>}
+                          ? <><Loader2 size={14} className="animate-spin" />comprimiendo…</>
+                          : <><Download size={14} />descargar todo</>}
                       </button>
                       {results.clips.length > 1 && (
                         <button
@@ -2498,7 +2491,7 @@ function App() {
                           className="btn-primary px-4 py-2 text-xs"
                         >
                           <Calendar size={14} />
-                          schedule week
+                          programar semana
                         </button>
                       )}
                     </div>
@@ -2591,8 +2584,8 @@ function App() {
                       <div className="w-full flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 px-3 py-2.5 rounded-input bg-paper3 border border-rule text-sm">
                         <div className="flex items-start gap-3 flex-1 min-w-0">
                           <div className="min-w-0 leading-relaxed">
-                            <span className="text-ink">Publish these clips straight from here.</span>{' '}
-                            <span className="text-muted">Connect your YouTube, TikTok or Instagram once — after that every clip is one click from posted.</span>
+                            <span className="text-ink">Publica estos clips desde aquí mismo.</span>{' '}
+                            <span className="text-muted">Conecta tu YouTube, TikTok o Instagram una vez y luego cada clip se publica con un clic.</span>
                           </div>
                           {/* On a phone the dismiss X rides the copy, so the CTA
                               below can run the full width of the card. */}
@@ -2612,7 +2605,7 @@ function App() {
                           onClick={() => { track('SocialNudgeConnect'); handleConnectSocials(); }}
                           className="btn-quiet shrink-0 text-xs py-1.5 px-3 lowercase w-full sm:w-auto"
                         >
-                          connect socials →
+                          conectar redes →
                         </button>
                         <button
                           onClick={() => {
@@ -2631,8 +2624,8 @@ function App() {
                         here they really are gone once the retention sweep runs. */}
                     {!billingEnabled && jobRetentionSeconds > 0 && (
                       <div className="px-3 py-2.5 rounded-input bg-paper3 border border-paper3 text-sm">
-                        <span className="text-ink">Clips are kept for {formatRetention(jobRetentionSeconds)}, then deleted.</span>{' '}
-                        <span className="text-muted">Download what you want to keep, or raise JOB_RETENTION_SECONDS in your env.</span>
+                        <span className="text-ink">Los clips se guardan por {formatRetention(jobRetentionSeconds)} y luego se borran.</span>{' '}
+                        <span className="text-muted">Descarga los que quieras conservar.</span>
                       </div>
                     )}
                   </div>
@@ -2674,15 +2667,15 @@ function App() {
                       <div className="h-full min-h-[140px] flex flex-col items-center justify-center text-muted space-y-3 text-center px-4">
                         <Loader2 size={28} className="animate-spin text-brass" />
                         <p className="text-sm lowercase">
-                          {clipsMaking ? `Making ${progress.total} ${progress.total === 1 ? 'clip' : 'clips'}...` : 'Waiting for clips...'}
+                          {clipsMaking ? `Haciendo ${progress.total} ${progress.total === 1 ? 'clip' : 'clips'}...` : 'Esperando los clips...'}
                         </p>
                         <p className="text-xs text-muted/80 max-w-[26ch] leading-snug">
-                          They appear here one by one as each finishes rendering.
+                          Van apareciendo aquí uno por uno conforme terminan.
                         </p>
                       </div>
                     ) : status === 'error' ? (
                       <div className="h-full min-h-[120px] flex flex-col items-center justify-center text-danger space-y-2">
-                        <p>Generation failed.</p>
+                        <p>No se pudieron generar los clips.</p>
                       </div>
                     ) : null
                   )}
@@ -2705,50 +2698,48 @@ function App() {
         isOpen={showKeyModal}
         onClose={() => setShowKeyModal(false)}
         eyebrow="SETUP"
-        title={!geminiOk && !uploadPostKey
-          ? 'Required API Keys Missing'
-          : !geminiOk
-            ? 'Gemini API Key Required'
-            : 'Upload-Post API Key Required'}
+        title={!geminiOk
+            ? 'Se necesita la clave de Gemini'
+            : 'Se necesita la clave de Upload-Post'}
         footer={
           <div className="flex gap-3">
             <button
               onClick={() => setShowKeyModal(false)}
               className="btn-ghost flex-1 px-4 py-2 text-sm"
             >
-              Cancel
+              Cancelar
             </button>
             <button
               onClick={() => { setShowKeyModal(false); goToTab('settings'); }}
               className="btn-primary flex-1 px-4 py-2 text-sm"
             >
-              Go to Settings
+              Ir a Ajustes
             </button>
           </div>
         }
       >
         <div className="space-y-4">
           <p className="text-sm text-muted">
-            OpenShorts needs both a <strong className="text-ink2">Gemini</strong> API key and an <strong className="text-ink2">Upload-Post</strong> API key. Both have free tiers.
+            CaelumClip necesita una clave gratis de <strong className="text-ink2">Gemini</strong>. La de <strong className="text-ink2">Upload-Post</strong> es opcional y solo sirve para publicar en redes.
           </p>
 
           {/* Gemini block */}
           <div className={`rounded-input p-4 space-y-2 border ${!apiKey ? 'border-rule2' : 'border-rule opacity-70'}`}>
             <p className="text-xs font-medium text-ink flex items-center gap-2">
               {apiKey ? <Check size={12} className="text-ok" /> : <AlertTriangle size={12} className="text-warn" />}
-              Gemini API Key {apiKey && <span className="text-ok">— set</span>}
+              Clave de Gemini {apiKey && <span className="text-ok">— lista</span>}
             </p>
             {!apiKey && (
               <>
                 <ol className="text-xs text-muted space-y-1 list-decimal list-inside">
-                  <li>Go to <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-brass underline">aistudio.google.com/app/apikey</a></li>
-                  <li>Sign in with your Google account</li>
-                  <li>Click "Create API Key"</li>
-                  <li>Copy the key and paste it below</li>
+                  <li>Entra a <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-brass underline">aistudio.google.com/app/apikey</a></li>
+                  <li>Inicia sesión con tu cuenta de Google</li>
+                  <li>Pulsa "Create API Key"</li>
+                  <li>Copia la clave y pégala abajo</li>
                 </ol>
                 <input
                   type="text"
-                  placeholder="Paste your Gemini API key here..."
+                  placeholder="Pega aquí tu clave de Gemini..."
                   className="input-field"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && e.target.value.trim()) {
@@ -2764,22 +2755,22 @@ function App() {
           <div className={`rounded-input p-4 space-y-2 border ${!uploadPostKey ? 'border-rule2' : 'border-rule opacity-70'}`}>
             <p className="text-xs font-medium text-ink flex items-center gap-2">
               {uploadPostKey ? <Check size={12} className="text-ok" /> : <AlertTriangle size={12} className="text-warn" />}
-              Upload-Post API Key {uploadPostKey && <span className="text-ok">— set</span>}
+              Clave de Upload-Post {uploadPostKey && <span className="text-ok">— lista</span>}
             </p>
             {!uploadPostKey && (
               <>
                 <p className="text-xs text-muted">
-                  Required to publish your clips to TikTok, Instagram Reels, and YouTube Shorts. Free tier available, no credit card needed.
+                  Opcional: solo para publicar en TikTok, Instagram Reels y YouTube Shorts. Tiene plan gratis, sin tarjeta.
                 </p>
                 <ol className="text-xs text-muted space-y-1 list-decimal list-inside">
-                  <li>Register at <a href="https://app.upload-post.com/login" target="_blank" rel="noopener noreferrer" className="text-brass underline">app.upload-post.com</a></li>
-                  <li>Connect your TikTok, Instagram, or YouTube accounts</li>
-                  <li>Go to <a href="https://app.upload-post.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-brass underline">API Keys</a> and generate one</li>
-                  <li>Paste it below</li>
+                  <li>Regístrate en <a href="https://app.upload-post.com/login" target="_blank" rel="noopener noreferrer" className="text-brass underline">app.upload-post.com</a></li>
+                  <li>Conecta tus cuentas de TikTok, Instagram o YouTube</li>
+                  <li>Entra a <a href="https://app.upload-post.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-brass underline">API Keys</a> y genera una</li>
+                  <li>Pégala abajo</li>
                 </ol>
                 <input
                   type="text"
-                  placeholder="Paste your Upload-Post API key here..."
+                  placeholder="Pega aquí tu clave de Upload-Post..."
                   className="input-field"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && e.target.value.trim()) {
@@ -2805,24 +2796,23 @@ function App() {
 
       {/* Pre-flight quality gate */}
       {qualityGate && (
-        <Modal isOpen={true} onClose={() => setQualityGate(null)} size="md" eyebrow="HEADS UP" title="low source quality">
+        <Modal isOpen={true} onClose={() => setQualityGate(null)} size="md" eyebrow="OJO" title="video de baja calidad">
           <div className="space-y-4">
             <p className="text-sm text-ink2">
-              YouTube only offers <span className="text-brass font-semibold">{qualityGate.info.max_height}p</span> for this video
-              (below the {qualityGate.info.min_height}p we recommend). Processing anyway will produce lower-quality clips.
+              YouTube solo ofrece <span className="text-brass font-semibold">{qualityGate.info.max_height}p</span> para este video (menos de los {qualityGate.info.min_height}p recomendados). Si sigues, los clips saldrán con menos calidad.
             </p>
             {qualityGate.info.cookies_invalid && (
               <p className="text-xs text-muted">
-                Your YouTube cookies look expired — refreshing them (export again from an incognito window) often unlocks HD.
+                Tus cookies de YouTube parecen vencidas; renovarlas (expórtalas otra vez desde una ventana de incógnito) suele desbloquear HD.
               </p>
             )}
             <div className="flex gap-2 justify-end pt-2">
-              <button onClick={() => setQualityGate(null)} className="btn-ghost">cancel</button>
+              <button onClick={() => setQualityGate(null)} className="btn-ghost">cancelar</button>
               <button
                 onClick={() => { const d = qualityGate.data; setQualityGate(null); handleProcess(d, true); }}
                 className="btn-primary"
               >
-                process anyway
+                procesar de todos modos
               </button>
             </div>
           </div>

@@ -20,7 +20,7 @@ function PageShell({ title, children }) {
   return (
     <div className="min-h-screen bg-paper text-ink2">
       <header className="h-14 sm:h-16 border-b border-rule bg-paper flex items-center justify-between gap-3 px-4 sm:px-6 sticky top-0 z-20">
-        <a href="#app" className="font-display lowercase text-lg text-ink truncate">OpenShorts</a>
+        <a href="#app" className="font-display lowercase text-lg text-ink truncate">CaelumClip</a>
         <a href="#app" className="text-sm lowercase text-muted hover:text-ink transition-colors shrink-0">← <span className="hidden sm:inline">Back to app</span><span className="sm:hidden">back</span></a>
       </header>
       <main className="p-4 sm:p-6 md:p-8 pb-[max(2rem,env(safe-area-inset-bottom))]">
@@ -118,8 +118,9 @@ function Root() {
     // visitor" shortcut into the app: the static fallback is the landing, so
     // swapping it for the app after hydration made / jump a second after load,
     // and the logo of every page has to reach the landing.
-    if (hash === '#app' || hash.startsWith('#app?') || hash === '#/app') return 'app';
-    return 'landing';
+    if (hash === '#landing') return 'landing';
+    // CaelumClip (personal edition): the app opens straight into the tool.
+    return 'app';
   };
 
   const [view, setView] = useState(resolveView);
@@ -142,7 +143,7 @@ function Root() {
   if (view === 'oauth') return <OAuthConsent />;
   if (view === 'deleted') return <DeletedView />;
   if (view === 'auth') {
-    return <div className="min-h-screen flex items-center justify-center bg-background text-zinc-400">Signing you in…</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-background text-zinc-400">Iniciando sesión…</div>;
   }
   if (view === 'app') return <App />;
   return <Landing onLaunchApp={handleLaunchApp} />;
@@ -159,7 +160,7 @@ applyConsent();
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
-      <Suspense fallback={<div className="min-h-screen bg-paper flex items-center justify-center text-muted text-sm lowercase">loading…</div>}>
+      <Suspense fallback={<div className="min-h-screen bg-paper flex items-center justify-center text-muted text-sm lowercase">cargando…</div>}>
         <Root />
       </Suspense>
       <CookieBanner />
