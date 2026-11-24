@@ -23,7 +23,7 @@ export default function KeyInput({ onKeySet, savedKey }) {
                 <div className="p-2 bg-paper3 rounded-input text-brass">
                     <Key size={18} />
                 </div>
-                <h2 className="font-display lowercase text-lg text-ink">Gemini API Key</h2>
+                <h2 className="font-display lowercase text-lg text-ink">Clave de Gemini</h2>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3">
@@ -50,11 +50,11 @@ export default function KeyInput({ onKeySet, savedKey }) {
                     disabled={!key || isSaved}
                     className={isSaved ? 'badge-ok px-4 cursor-default' : 'btn-primary'}
                 >
-                    {isSaved ? <><Check size={14} /> Ready</> : 'Set Key'}
+                    {isSaved ? <><Check size={14} /> Lista</> : 'Guardar clave'}
                 </button>
             </div>
             <p className="mt-3 text-xs text-muted">
-                Your key is stored locally in your browser for convenience.
+                Tu clave se guarda solo en tu navegador.
                 <br />
                 <a
                     href="https://aistudio.google.com/app/apikey"
@@ -62,7 +62,7 @@ export default function KeyInput({ onKeySet, savedKey }) {
                     rel="noopener noreferrer"
                     className="text-brass hover:underline mt-1 inline-block"
                 >
-                    Get your free Gemini API Key here →
+                    Saca tu clave gratis de Gemini aquí →
                 </a>
             </p>
         </div>

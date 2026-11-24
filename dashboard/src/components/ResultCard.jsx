@@ -351,7 +351,7 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
     const knownConnections = Array.isArray(connectedPlatforms);
     const noAccountsConnected = knownConnections && connectedPlatforms.length === 0;
     const platformOptions = knownConnections
-        ? PLATFORM_OPTIONS.map((o) => (connectedPlatforms.includes(o.value) ? o : { ...o, disabled: true, hint: 'not connected' }))
+        ? PLATFORM_OPTIONS.map((o) => (connectedPlatforms.includes(o.value) ? o : { ...o, disabled: true, hint: 'sin conectar' }))
         : PLATFORM_OPTIONS;
 
     const handleConnectAccounts = () => {
@@ -918,7 +918,7 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                     {Number.isFinite(clip.predicted_score) && (
                         <span
                             className="bg-black/70 font-mono text-micro uppercase px-2 py-1 rounded-full flex items-center gap-1"
-                            title="openshorts' prediction of how well this clip will perform, from 0 to 100"
+                            title="qué tan bien podría funcionar este clip, de 0 a 100"
                         >
                             <TrendingUp size={11} className="shrink-0 text-muted" />
                             <span className="text-muted">viral</span>
@@ -938,8 +938,8 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                 {isEditing && (
                     <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-10 p-4 text-center">
                         <Loader2 size={28} className="text-brass animate-spin mb-3" />
-                        <span className="text-xs text-ink lowercase">ai magic in progress…</span>
-                        <span className="readout mt-1.5">APPLYING VIRAL EDITS · ZOOMS</span>
+                        <span className="text-xs text-ink lowercase">la ia está trabajando…</span>
+                        <span className="readout mt-1.5">APLICANDO EDICIÓN · ZOOMS</span>
                     </div>
                 )}
             </div>
@@ -948,7 +948,7 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
             <div className="flex-1 p-4 md:p-5 flex flex-col overflow-hidden min-w-0">
                 <div className="mb-4">
                     <h3 className="text-base font-medium text-ink leading-tight line-clamp-2 mb-2 break-words" title={clip.video_title_for_youtube_short}>
-                        {clip.video_title_for_youtube_short || "Viral Clip Generated"}
+                        {clip.video_title_for_youtube_short || "Clip generado"}
                     </h3>
                     {/* The score alone says how much, not why. One line from
                         the selection pass on what this moment has going for it. */}
@@ -962,7 +962,7 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                                 ref={whyRef}
                                 className={`text-xs text-muted leading-snug line-clamp-2 break-words ${whyClamped ? 'cursor-pointer' : ''}`}
                                 onClick={() => whyClamped && setWhyOpen(v => !v)}
-                                aria-label="why openshorts picked this moment"
+                                aria-label="por qué se eligió este momento"
                             >
                                 {clip.why}
                             </p>
@@ -979,8 +979,8 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                     <div className="flex flex-wrap gap-1.5">
                         {durationReadout && <span className="readout bg-paper3 px-2 py-0.5 rounded-full shrink-0">{durationReadout}</span>}
                         {resolution && <span className="readout bg-paper3 px-2 py-0.5 rounded-full shrink-0">{resolution}</span>}
-                        {isPro && <span className="readout bg-paper3 px-2 py-0.5 rounded-full shrink-0 text-brass">pro mode</span>}
-                        {!isPro && clip.pro_suggested && <span className="readout bg-paper3 px-2 py-0.5 rounded-full shrink-0 text-brass">pro recommended</span>}
+                        {isPro && <span className="readout bg-paper3 px-2 py-0.5 rounded-full shrink-0 text-brass">modo pro</span>}
+                        {!isPro && clip.pro_suggested && <span className="readout bg-paper3 px-2 py-0.5 rounded-full shrink-0 text-brass">pro recomendado</span>}
                         <span className="readout bg-paper3 px-2 py-0.5 rounded-full shrink-0">#shorts</span>
                         <span className="readout bg-paper3 px-2 py-0.5 rounded-full shrink-0">#viral</span>
                     </div>
@@ -995,7 +995,7 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                         </p>
                         <button
                             onClick={() => handleCopy('youtube', clip.video_title_for_youtube_short || "Viral Short Video")}
-                            aria-label="copy youtube title"
+                            aria-label="copiar título de youtube"
                             className="p-1 rounded-full text-muted hover:text-brass transition-colors shrink-0"
                         >
                             {copied === 'youtube' ? <Check size={14} className="text-ok" /> : <Copy size={14} />}
@@ -1009,7 +1009,7 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                         </p>
                         <button
                             onClick={() => handleCopy('caption', clip.video_description_for_tiktok || clip.video_description_for_instagram)}
-                            aria-label="copy caption"
+                            aria-label="copiar descripción"
                             className="p-1 rounded-full text-muted hover:text-brass transition-colors shrink-0"
                         >
                             {copied === 'caption' ? <Check size={14} className="text-ok" /> : <Copy size={14} />}
@@ -1020,7 +1020,7 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                         onClick={() => setShowDescModal(true)}
                         className="w-full flex items-center justify-center gap-2 py-2 rounded-input border border-dashed border-rule text-xs lowercase text-muted hover:text-brass hover:border-rule2 transition-colors"
                     >
-                        <FileText size={14} /> view descriptions
+                        <FileText size={14} /> ver descripciones
                     </button>
                 </div>
 
@@ -1043,10 +1043,10 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                             : <Sparkles size={20} className="text-brass shrink-0" />}
                         <span className="min-w-0">
                             <span className="block text-sm font-semibold text-ink">
-                                {isSwitchingMode ? 'Rendering pro mode…' : 'Try pro mode on this clip'}
+                                {isSwitchingMode ? 'Procesando modo pro…' : 'Prueba el modo pro en este clip'}
                             </span>
                             <span className="block text-[11px] leading-snug text-ink2">
-                                One person talking: tighter frame on the face, pauses cut, cinematic look. One click back to normal.
+                                Una persona hablando: encuadre más cerrado en la cara, pausas recortadas, look de cine. Con un clic vuelves a normal.
                             </span>
                         </span>
                     </button>
@@ -1054,8 +1054,8 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                 {canSwitchMode && (isPro || !clip.pro_suggested) && (
                     <p className="mb-2 text-[11px] leading-snug text-muted">
                         {isPro
-                            ? 'Pro mode is on: tighter frame on the face, pauses cut, cinematic look. You can switch back to normal any time.'
-                            : 'Pro mode is recommended only for podcasts and talking-head clips, where the picture is one person speaking.'}
+                            ? 'Modo pro activado: encuadre más cerrado en la cara, pausas recortadas, look de cine. Puedes volver a normal cuando quieras.'
+                            : 'El modo pro se recomienda solo para podcasts y clips de una persona hablando a cámara.'}
                     </p>
                 )}
 
@@ -1067,7 +1067,7 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                             className={QUIET_BTN}
                         >
                             <Scissors size={16} className="text-muted group-hover:text-brass transition-colors shrink-0" />
-                            edit clip
+                            editar clip
                         </button>
                     )}
 
@@ -1077,7 +1077,7 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                             className={QUIET_BTN}
                         >
                             <Crosshair size={16} className="text-muted group-hover:text-brass transition-colors shrink-0" />
-                            reframing
+                            reencuadre
                         </button>
                     )}
 
@@ -1085,7 +1085,7 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                         <button
                             onClick={handleMode}
                             disabled={isSwitchingMode}
-                            title="Pro mode: tighter frame on the face, pauses cut, cinematic look. Recommended for podcasts and talking-head clips."
+                            title="Modo pro: encuadre más cerrado en la cara, pausas recortadas, look de cine. Ideal para podcasts."
                             className={!isPro && clip.pro_suggested
                                 ? 'btn-primary flex-col gap-1 py-2.5 sm:py-2 px-1 text-[11px] leading-none rounded-input whitespace-nowrap'
                                 : QUIET_BTN}
@@ -1093,7 +1093,7 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                             {isSwitchingMode
                                 ? <Loader2 size={16} className={`animate-spin shrink-0 ${!isPro && clip.pro_suggested ? '' : 'text-brass'}`} />
                                 : <Sparkles size={16} className={!isPro && clip.pro_suggested ? 'shrink-0' : `${isPro ? 'text-brass' : 'text-muted'} group-hover:text-brass transition-colors shrink-0`} />}
-                            {isSwitchingMode ? 'rendering…' : isPro ? 'normal mode' : 'pro mode'}
+                            {isSwitchingMode ? 'rendering…' : isPro ? 'modo normal' : 'modo pro'}
                         </button>
                     )}
 
@@ -1103,7 +1103,7 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                         className={QUIET_BTN}
                     >
                         {isEditing ? <Loader2 size={16} className="animate-spin text-brass shrink-0" /> : <Wand2 size={16} className="text-muted group-hover:text-brass transition-colors shrink-0" />}
-                        {isEditing ? 'editing…' : 'auto edit'}
+                        {isEditing ? 'editing…' : 'edición automática'}
                     </button>
 
                     <button
@@ -1121,7 +1121,7 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                         className={QUIET_BTN}
                     >
                         {isHooking ? <Loader2 size={16} className="animate-spin text-brass shrink-0" /> : <Wand2 size={16} className="text-muted group-hover:text-brass transition-colors shrink-0" />}
-                        {isHooking ? 'saving…' : 'edit hook'}
+                        {isHooking ? 'saving…' : 'editar gancho'}
                     </button>
 
                     <button
@@ -1130,14 +1130,14 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                         className={QUIET_BTN}
                     >
                         {isTranslating ? <Loader2 size={16} className="animate-spin text-brass shrink-0" /> : <Languages size={16} className="text-muted group-hover:text-brass transition-colors shrink-0" />}
-                        {isTranslating ? 'translating…' : 'dub voice'}
+                        {isTranslating ? 'translating…' : 'doblar voz'}
                     </button>
 
                     <button
                         onClick={() => setShowModal(true)}
                         className="btn-primary flex-col gap-1 py-2.5 sm:py-2 px-1 text-[11px] leading-none rounded-input whitespace-nowrap"
                     >
-                        <Share2 size={16} className="shrink-0" /> post
+                        <Share2 size={16} className="shrink-0" /> publicar
                     </button>
                     <button
                         onClick={(e) => {
@@ -1153,7 +1153,7 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                         className={`${QUIET_BTN}${onEditClip ? ' col-span-2' : ''}`}
                     >
                         <Download size={16} className="text-muted group-hover:text-brass transition-colors shrink-0" />
-                        {downloadPct === null ? 'download' : `downloading ${downloadPct}%`}
+                        {downloadPct === null ? 'download' : `descargando ${downloadPct}%`}
                     </button>
                 </div>
             </div>
@@ -1169,10 +1169,10 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                 <div className="space-y-4">
                     <div>
                         <div className="flex items-center justify-between gap-2 mb-1.5">
-                            <label className="eyebrow">YOUTUBE TITLE</label>
+                            <label className="eyebrow">TÍTULO DE YOUTUBE</label>
                             <button
                                 onClick={() => handleCopy('youtube', clip.video_title_for_youtube_short || "Viral Short Video")}
-                                aria-label="copy youtube title"
+                                aria-label="copiar título de youtube"
                                 className="p-1 rounded-full text-muted hover:text-brass transition-colors shrink-0"
                             >
                                 {copied === 'youtube' ? <Check size={14} className="text-ok" /> : <Copy size={14} />}
@@ -1185,10 +1185,10 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
 
                     <div>
                         <div className="flex items-center justify-between gap-2 mb-1.5">
-                            <label className="eyebrow">TIKTOK · IG CAPTION</label>
+                            <label className="eyebrow">DESCRIPCIÓN TIKTOK · IG</label>
                             <button
                                 onClick={() => handleCopy('caption', clip.video_description_for_tiktok || clip.video_description_for_instagram)}
-                                aria-label="copy caption"
+                                aria-label="copiar descripción"
                                 className="p-1 rounded-full text-muted hover:text-brass transition-colors shrink-0"
                             >
                                 {copied === 'caption' ? <Check size={14} className="text-ok" /> : <Copy size={14} />}
@@ -1206,12 +1206,12 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                 isOpen={showModal}
                 onClose={() => setShowModal(false)}
                 eyebrow="PUBLISH"
-                title="post clip"
+                title="publicar clip"
                 size="md"
                 footer={
                     noAccountsConnected ? (
                         <button onClick={handleConnectAccounts} className="btn-primary w-full">
-                            <Link2 size={16} /> connect accounts
+                            <Link2 size={16} /> conectar cuentas
                         </button>
                     ) : (
                         <button
@@ -1219,7 +1219,7 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                             disabled={posting || !canPost}
                             className="btn-primary w-full"
                         >
-                            {posting ? <><Loader2 size={16} className="animate-spin" /> {isScheduling ? 'scheduling…' : 'publishing…'}</> : <><Share2 size={16} /> {isScheduling ? 'schedule post' : 'publish now'}</>}
+                            {posting ? <><Loader2 size={16} className="animate-spin" /> {isScheduling ? 'scheduling…' : 'publishing…'}</> : <><Share2 size={16} /> {isScheduling ? 'programar' : 'publicar ya'}</>}
                         </button>
                     )
                 }
@@ -1227,14 +1227,14 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                 {!canPost && (
                     <div className="mb-4 px-3 py-2 rounded-input text-xs text-warn bg-[color-mix(in_oklab,var(--color-warn)_10%,transparent)] flex items-start gap-2">
                         <AlertCircle size={14} className="mt-0.5 shrink-0" />
-                        <div className="lowercase">configure api key in settings first.</div>
+                        <div className="lowercase">primero pon la clave en ajustes.</div>
                     </div>
                 )}
 
                 {noAccountsConnected && (
                     <div className="mb-4 px-3 py-2 rounded-input text-xs text-warn bg-[color-mix(in_oklab,var(--color-warn)_10%,transparent)] flex items-start gap-2">
                         <AlertCircle size={14} className="mt-0.5 shrink-0" />
-                        <div className="lowercase">no social accounts connected yet — link tiktok, instagram, youtube, facebook, linkedin, threads or bluesky to publish this clip.</div>
+                        <div className="lowercase">todavía no hay redes conectadas: conecta tiktok, instagram, youtube, facebook, linkedin, threads o bluesky para publicar este clip.</div>
                     </div>
                 )}
 
@@ -1246,24 +1246,24 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                 <div className="space-y-4">
                     {/* Title & Description */}
                     <div>
-                        <label className="eyebrow block mb-1.5">TITLE</label>
+                        <label className="eyebrow block mb-1.5">TÍTULO</label>
                         <input
                             type="text"
                             value={postTitle}
                             onChange={(e) => setPostTitle(e.target.value)}
                             className="input-field"
-                            placeholder="enter a catchy title…"
+                            placeholder="escribe un título llamativo…"
                         />
                     </div>
 
                     <div>
-                        <label className="eyebrow block mb-1.5">CAPTION</label>
+                        <label className="eyebrow block mb-1.5">DESCRIPCIÓN</label>
                         <textarea
                             value={postDescription}
                             onChange={(e) => setPostDescription(e.target.value)}
                             rows={4}
                             className="input-field resize-none"
-                            placeholder="write a caption for your post…"
+                            placeholder="escribe la descripción de tu publicación…"
                         />
                     </div>
 
@@ -1271,7 +1271,7 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
                     <div className="p-3 bg-paper rounded-input border border-rule">
                         <label className="flex items-center justify-between cursor-pointer">
                             <span className="flex items-center gap-2 text-sm text-ink2 lowercase">
-                                <Calendar size={16} className={isScheduling ? 'text-brass' : 'text-muted'} /> schedule post
+                                <Calendar size={16} className={isScheduling ? 'text-brass' : 'text-muted'} /> programar
                             </span>
                             <input
                                 type="checkbox"
@@ -1283,7 +1283,7 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
 
                         {isScheduling && (
                             <div className="mt-3 animate-fade">
-                                <label className="eyebrow block mb-1.5">DATE · TIME</label>
+                                <label className="eyebrow block mb-1.5">FECHA · HORA</label>
                                 <input
                                     type="datetime-local"
                                     value={scheduleDate}
@@ -1296,7 +1296,7 @@ export default function ResultCard({ clip, index, jobId, durable, uploadPostKey,
 
                     {/* Platforms */}
                     <div>
-                        <label className="eyebrow block mb-2">PLATFORMS</label>
+                        <label className="eyebrow block mb-2">PLATAFORMAS</label>
                         <SegmentedControl
                             multi
                             columns={4}
